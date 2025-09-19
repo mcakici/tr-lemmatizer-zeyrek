@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import functools, re, logging, os
 import zeyrek
+import nltk
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("zeyrek-svc")
@@ -34,6 +35,13 @@ def _tokenize(text: str) -> List[str]:
 @app.on_event("startup")
 async def warmup():
     try:
+        log.info("Ensuring NLTK punkt_tab data is available...")
+        try:
+            nltk.data.find('tokenizers/punkt_tab')
+        except LookupError:
+            log.info("Downloading NLTK punkt_tab data...")
+            nltk.download('punkt_tab')
+        
         log.info("Warming up Zeyrek (cache: %s)...", CACHE_DIR)
         a = get_analyzer()
         a.lemmatize("deneme")

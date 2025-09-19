@@ -7,6 +7,9 @@ WORKDIR /srv
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Download NLTK punkt_tab data for Turkish
+RUN python -c "import nltk; nltk.download('punkt_tab')"
+
 RUN mkdir -p ${ZEYREK_CACHE_DIR}
 COPY app.py /srv/app.py
 
