@@ -87,10 +87,17 @@ def lemmatize(req: LemReq) -> Dict[str, Any]:
 
         for tok in tokens:
             result = a.lemmatize(tok)
-            # Zeyrek lemmatize returns (token, [lemma_list])
-            # Safely extract the first lemma
-            if result and len(result) > 1 and result[1] and len(result[1]) > 0:
-                lemma = result[1][0]
+            # Zeyrek lemmatize returns [('token', ['lemma1', 'lemma2', ...])]
+            # We want the first lemma from the list: result[0][1][0]
+            if result and len(result) > 0 and len(result[0]) > 1 and result[0][1]:
+                # Get all lemmas
+                lemmas_list = result[0][1]
+                # Prefer common nouns (lowercase) over proper nouns (uppercase)
+                common_lemmas = [l for l in lemmas_list if l[0].islower()]
+                if common_lemmas:
+                    lemma = common_lemmas[0]  # First common noun lemma
+                else:
+                    lemma = lemmas_list[0]  # Fallback to first lemma
             else:
                 lemma = tok
             lemmas.append(lemma)
