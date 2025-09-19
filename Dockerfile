@@ -8,10 +8,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN mkdir -p ${ZEYREK_CACHE_DIR}
-
 COPY app.py /srv/app.py
-
-RUN python -c "import os,zeyrek; os.makedirs(os.environ.get('ZEYREK_CACHE_DIR','/srv/.zeyrek_cache'), exist_ok=True); a=zeyrek.MorphAnalyzer(); a.lemmatize('deneme'); print('Zeyrek warmup at build time: OK')"
 
 EXPOSE 8077
 CMD ["uvicorn","app:app","--host","0.0.0.0","--port","8077","--no-server-header"]
