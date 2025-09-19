@@ -88,7 +88,11 @@ def lemmatize(req: LemReq) -> Dict[str, Any]:
         for tok in tokens:
             result = a.lemmatize(tok)
             # Zeyrek lemmatize returns (token, [lemma_list])
-            lemma = result[1][0] if result and result[1] else tok
+            # Safely extract the first lemma
+            if result and len(result) > 1 and result[1] and len(result[1]) > 0:
+                lemma = result[1][0]
+            else:
+                lemma = tok
             lemmas.append(lemma)
             if req.return_details:
                 analyses = a.analyze(tok)
