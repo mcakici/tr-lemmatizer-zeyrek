@@ -13,6 +13,10 @@ app = FastAPI(title="TR Lemmatizer (zeyrek)")
 CACHE_DIR = os.environ.get("ZEYREK_CACHE_DIR", "/srv/.zeyrek_cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
+# Set NLTK data path
+NLTK_DATA_DIR = os.environ.get("NLTK_DATA", "/usr/local/share/nltk_data")
+os.environ["NLTK_DATA"] = NLTK_DATA_DIR
+
 
 @functools.lru_cache(maxsize=1)
 def get_analyzer():
@@ -35,12 +39,25 @@ def _tokenize(text: str) -> List[str]:
 @app.on_event("startup")
 async def warmup():
     try:
-        log.info("Ensuring NLTK punkt_tab data is available...")
+        log.info("Ensuring NLTK data is available...")
+        
+        # Check and download punkt data
+        try:
+            nltk.data.find('tokenizers/punkt')
+            log.info("NLTK punkt data found.")
+        except (LookupError, OSError) as e:
+            log.info("NLTK punkt data not found, downloading...")
+            nltk.download('punkt', quiet=True)
+            log.info("NLTK punkt data downloaded.")
+        
+        # Check and download punkt_tab data
         try:
             nltk.data.find('tokenizers/punkt_tab')
-        except LookupError:
-            log.info("Downloading NLTK punkt_tab data...")
-            nltk.download('punkt_tab')
+            log.info("NLTK punkt_tab data found.")
+        except (LookupError, OSError) as e:
+            log.info("NLTK punkt_tab data not found, downloading...")
+            nltk.download('punkt_tab', quiet=True)
+            log.info("NLTK punkt_tab data downloaded.")
         
         log.info("Warming up Zeyrek (cache: %s)...", CACHE_DIR)
         a = get_analyzer()
