@@ -87,7 +87,8 @@ def lemmatize(req: LemReq) -> Dict[str, Any]:
 
         for tok in tokens:
             result = a.lemmatize(tok)
-            lemma = result[0] if result else tok
+            # Zeyrek lemmatize returns (token, [lemma_list])
+            lemma = result[1][0] if result and result[1] else tok
             lemmas.append(lemma)
             if req.return_details:
                 analyses = a.analyze(tok)
