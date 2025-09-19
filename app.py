@@ -92,10 +92,31 @@ def lemmatize(req: LemReq) -> Dict[str, Any]:
             if result and len(result) > 0 and len(result[0]) > 1 and result[0][1]:
                 # Get all lemmas
                 lemmas_list = result[0][1]
-                # Prefer common nouns (lowercase) over proper nouns (uppercase)
-                common_lemmas = [l for l in lemmas_list if l[0].islower()]
-                if common_lemmas:
-                    lemma = common_lemmas[0]  # First common noun lemma
+                # Get analyses to determine POS tags
+                analyses = a.analyze(tok)
+                
+                # Prefer nouns over verbs, then common nouns over proper nouns
+                noun_lemmas = []
+                verb_lemmas = []
+                other_lemmas = []
+                
+                # analyses is a list, and analyses[0] is also a list of Parse objects
+                if analyses and len(analyses) > 0:
+                    for analysis in analyses[0]:
+                        if hasattr(analysis, 'pos') and analysis.pos == 'Noun':
+                            noun_lemmas.append(analysis.lemma)
+                        elif hasattr(analysis, 'pos') and analysis.pos == 'Verb':
+                            verb_lemmas.append(analysis.lemma)
+                        else:
+                            other_lemmas.append(analysis.lemma)
+                
+                # Choose the best lemma: nouns > verbs > others
+                if noun_lemmas:
+                    lemma = noun_lemmas[0]
+                elif verb_lemmas:
+                    lemma = verb_lemmas[0]
+                elif other_lemmas:
+                    lemma = other_lemmas[0]
                 else:
                     lemma = lemmas_list[0]  # Fallback to first lemma
             else:
